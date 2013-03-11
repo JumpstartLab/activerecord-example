@@ -2,7 +2,7 @@ require 'active_record'
 require 'yaml'
 # require 'logger'
 
-ENV['JET_FUEL_ENV'] ||= "development"
+ENV['DB_ENV'] ||= "development"
 
 task :default => :migrate
 
@@ -13,11 +13,12 @@ task :default => :migrate
 
 desc "Migrate the database through scripts in db/migrate. Target specific version with VERSION=x"
 task :migrate => :environment do
-  puts "Migrating My Database in the #{ENV['JET_FUEL_ENV']}"
+  puts "Migrating database in the #{ENV['DB_ENV']} environment"
 
   if ENV["VERSION"]
-    ActiveRecord::Migrator.migrate('db/migrate', ENV["VERSION"] ? ENV["VERSION"].to_i : nil )
+    ActiveRecord::Migrator.migrate('db/migrate', ENV["VERSION"].to_i)
   else
+    # determine the highest level of migration and run that
     puts %{
     No database migration VERSION was specified.
 
@@ -38,12 +39,7 @@ task :environment do
   #
   database_configuration = YAML::load(File.open('database.yml'))
 
-  # test, development, or production
-  ENV['DB_ENV'] ||= "development"
-
   environment_configuration = database_configuration[ENV['DB_ENV']]
-
-  puts environment_configuration
 
   ActiveRecord::Base.establish_connection environment_configuration
 
